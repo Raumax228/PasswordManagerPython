@@ -1,43 +1,56 @@
 import sqlite3
 import os
 import functions
+import log
+import lang_dict
 
+log.log_start()
 if not os.path.exists("profiles.db"):
     conn = sqlite3.connect("profiles.db")
     cursor = conn.cursor()
+    cursor.execute("CREATE TABLE users ("
+                   "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                   "username TEXT, "
+                   "password TEXT, "
+                   "salt TEXT)")
     cursor.execute("CREATE TABLE profiles ("
-                   "user TEXT, "
+                   "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                   "user_id INTEGER, "
                    "website TEXT, "
                    "username TEXT, "
                    "password TEXT, "
-                   "salt TEXT)")
-    cursor.execute("CREATE TABLE users ("
-                   "username TEXT, "
-                   "password TEXT, "
-                   "salt TEXT)")
+                   "salt TEXT, "
+                   "FOREIGN KEY (user_id) REFERENCES users(id))")
+
     conn.commit()
     conn.close()
 
 while True:
     print("\nPassword Manager")
-    print("1. Registration")
-    print("2. Log in")
-    print("3. Exit")
+    language = lang_dict.curr_lang.set_language()
+    (enter_website, enter_username, enter_password, registration, login, exit, enter_choice, add_rec,
+     show_rec, delete_rec, update_rec, invalid_choice, data_saved, password_error, website, username,
+     password, no_data, fill_spaces, data_deleted,
+     authorization, wrong_data, no_users) = lang_dict.curr_lang.get_dict(language)
+    print(f"1. {registration}")
+    print(f"2. {login}")
+    print(f"3. {exit}")
 
-    choice = input("Enter your choice: ")
+    choice = input(f"{enter_choice} ")
 
     if choice == "1":
         functions.add_user()
     elif choice == "2":
         if functions.authorize():
+            log.log_in()
             while True:
-                print("\n1. Add Record")
-                print("2. Show Record")
-                print("3. Delete Record")
-                print("4. Update Record")
-                print("5. Exit")
+                print(f"\n1. {add_rec}")
+                print(f"2. {show_rec}")
+                print(f"3. {delete_rec}")
+                print(f"4. {update_rec}")
+                print(f"5. {exit}")
 
-                choice = input("Enter your choice: ")
+                choice = input(f"{exit} ")
 
                 if choice == "1":
                     functions.add_profile()
@@ -48,11 +61,12 @@ while True:
                 elif choice == "4":
                     functions.update_profile()
                 elif choice == "5":
-                    functions.clear_current_user()
+                    log.log_out()
                     break
                 else:
-                    print("Invalid choice. Please try again.")
+                    print(f"{invalid_choice}")
     elif choice == "3":
+        log.log_end()
         break
     else:
-        print("Invalid choice. Please try again.")
+        print(f"{invalid_choice}")
